@@ -1,5 +1,17 @@
+stages:
+  build
+  test
+
+
 build website:
+  stage: build
   image: node:18-alpine
   script:
     - yarn install
     - yarn build
+
+test website:
+  stage: test
+  image: node:18-alpine
+  script:
+    - test -f public/index.html
