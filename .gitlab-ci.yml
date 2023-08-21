@@ -3,13 +3,7 @@ stages:
   - build
   - test
   - deploy-staging
-  - test-staging
   - deploy-production
-  - test-production
-
-variables:
-  APP_BASE_URL: http://segun-20230819.s3-website-us-east-1.amazonaws.com
-  APP_BASE_URL_STAGING: http://segun-20230819-staging.s3-website-us-east-1.amazonaws.com
 
 build website:
   image: node:18-alpine
@@ -35,6 +29,7 @@ test website:
 
 deploy to staging:
   stage: deploy-staging
+  environment: staging
   image: 
     name: amazon/aws-cli:2.13.11
     entrypoint: [""]
@@ -43,17 +38,11 @@ deploy to staging:
   script:
     - aws --version
     - aws s3 sync build s3://$AWS_S3_BUCKET_STAGING --delete
-
-test staging:
-  stage: test-staging
-  image: curlimages/curl
-  rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-  script:
-    - curl $APP_BASE_URL | grep "React App"
+    - curl $CI_ENVIRONMENT_URL | grep "React App"
 
 deploy to production:
   stage: deploy-production
+  environment: production
   image: 
     name: amazon/aws-cli:2.13.11
     entrypoint: [""]
@@ -62,11 +51,4 @@ deploy to production:
   script:
     - aws --version
     - aws s3 sync build s3://$AWS_S3_BUCKET --delete
-
-test production:
-  stage: test-production
-  image: curlimages/curl
-  rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-  script:
-    - curl $APP_BASE_URL-_STAGING | grep "React App"
+    - curl $CI_ENVIRONMENT_URL | grep "React App"
