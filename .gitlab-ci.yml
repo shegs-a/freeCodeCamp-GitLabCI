@@ -2,6 +2,7 @@ stages:
   - .pre
   - build
   - test
+  - deploy
 
 build website:
   image: node:18-alpine
@@ -9,16 +10,11 @@ build website:
   script:
     - yarn install
     - yarn build
+    - yarn test
+    - yarn lint
   artifacts:
     paths:
       - build
-
-linter:
-  image: node:18-alpine
-  stage: .pre
-  script:
-    - yarn install
-    - yarn lint
 
 test website:
   image: node:18-alpine
@@ -26,13 +22,17 @@ test website:
   script:
     - yarn global add serve
     - apk add curl
-    - serve -s build &
+    - serve -s build & 
     - sleep 30
     - curl http://localhost:3000 | grep "React App"
 
-unit tests:
-  image: node:18-alpine
-  stage: .pre
+deploy to s3:
+  stage: deploy
+  image: 
+    name: amazon/aws-cli:2.13.11
+    entrypoint: [""]
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
   script:
-    - yarn install
-    - yarn test
+    - aws --version
+    - aws s3 sync build s3://$AWS_S3_BUCKET --delete
